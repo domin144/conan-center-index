@@ -67,6 +67,9 @@ class OpenImageIOConan(ConanFile):
         "with_libwebp": True,
     }
 
+    short_paths = True
+    generators = "CMakeDeps"
+
     def export_sources(self):
         export_conandata_patches(self)
 
@@ -150,56 +153,55 @@ class OpenImageIOConan(ConanFile):
         tc = CMakeToolchain(self)
 
         # CMake options
-        tc.variables["CMAKE_DEBUG_POSTFIX"] = ""  # Needed for 2.3.x.x+ versions
-        tc.variables["OIIO_BUILD_TOOLS"] = True
-        tc.variables["OIIO_BUILD_TESTS"] = False
-        tc.variables["BUILD_DOCS"] = False
-        tc.variables["INSTALL_DOCS"] = False
-        tc.variables["INSTALL_FONTS"] = False
-        tc.variables["INSTALL_CMAKE_HELPER"] = False
-        tc.variables["EMBEDPLUGINS"] = True
-        tc.variables["USE_PYTHON"] = False
-        tc.variables["USE_EXTERNAL_PUGIXML"] = True
+        tc.cache_variables["CMAKE_DEBUG_POSTFIX"] = ""  # Needed for 2.3.x.x+ versions
+        tc.cache_variables["OIIO_BUILD_TOOLS"] = True
+        tc.cache_variables["OIIO_BUILD_TESTS"] = False
+        tc.cache_variables["BUILD_DOCS"] = False
+        tc.cache_variables["INSTALL_DOCS"] = False
+        tc.cache_variables["INSTALL_FONTS"] = False
+        tc.cache_variables["INSTALL_CMAKE_HELPER"] = False
+        tc.cache_variables["EMBEDPLUGINS"] = True
+        tc.cache_variables["USE_PYTHON"] = False
+        tc.cache_variables["USE_EXTERNAL_PUGIXML"] = True
 
         # OIIO CMake files are patched to check USE_* flags to require or not use dependencies
-        tc.variables["USE_JPEGTURBO"] = self.options.with_libjpeg == "libjpeg-turbo"
-        tc.variables["USE_JPEG"] = True  # Needed for jpeg.imageio plugin, libjpeg/libjpeg-turbo selection still works
-        tc.variables["USE_HDF5"] = self.options.with_hdf5
-        tc.variables["USE_OPENCOLORIO"] = self.options.with_opencolorio
-        tc.variables["USE_OPENCV"] = self.options.with_opencv
-        tc.variables["USE_TBB"] = self.options.with_tbb
-        tc.variables["USE_DCMTK"] = self.options.with_dicom
-        tc.variables["USE_FFMPEG"] = self.options.with_ffmpeg
-        tc.variables["USE_FIELD3D"] = False
-        tc.variables["USE_GIF"] = self.options.with_giflib
-        tc.variables["USE_LIBHEIF"] = self.options.with_libheif
-        tc.variables["USE_LIBRAW"] = self.options.with_raw
-        tc.variables["USE_OPENVDB"] = self.options.with_openvdb
-        tc.variables["USE_PTEX"] = self.options.with_ptex
-        tc.variables["USE_R3DSDK"] = False
-        tc.variables["USE_NUKE"] = False
-        tc.variables["USE_OPENGL"] = False
-        tc.variables["USE_QT"] = False
-        tc.variables["USE_LIBPNG"] = self.options.with_libpng
-        tc.variables["USE_FREETYPE"] = self.options.with_freetype
-        tc.variables["USE_LIBWEBP"] = self.options.with_libwebp
-        tc.variables["USE_OPENJPEG"] = self.options.with_openjpeg
+        tc.cache_variables["USE_JPEGTURBO"] = (
+            self.options.with_libjpeg == "libjpeg-turbo"
+        )
+        tc.cache_variables[
+            "USE_JPEG"
+        ] = True  # Needed for jpeg.imageio plugin, libjpeg/libjpeg-turbo selection still works
+        tc.cache_variables["USE_HDF5"] = self.options.with_hdf5
+        tc.cache_variables["USE_OPENCOLORIO"] = self.options.with_opencolorio
+        tc.cache_variables["USE_OPENCV"] = self.options.with_opencv
+        tc.cache_variables["USE_TBB"] = self.options.with_tbb
+        tc.cache_variables["USE_DCMTK"] = self.options.with_dicom
+        tc.cache_variables["USE_FFMPEG"] = self.options.with_ffmpeg
+        tc.cache_variables["USE_FIELD3D"] = False
+        tc.cache_variables["USE_GIF"] = self.options.with_giflib
+        tc.cache_variables["USE_LIBHEIF"] = self.options.with_libheif
+        tc.cache_variables["USE_LIBRAW"] = self.options.with_raw
+        tc.cache_variables["USE_OPENVDB"] = self.options.with_openvdb
+        tc.cache_variables["USE_PTEX"] = self.options.with_ptex
+        tc.cache_variables["USE_R3DSDK"] = False
+        tc.cache_variables["USE_NUKE"] = False
+        tc.cache_variables["USE_OPENGL"] = False
+        tc.cache_variables["USE_QT"] = False
+        tc.cache_variables["USE_LIBPNG"] = self.options.with_libpng
+        tc.cache_variables["USE_FREETYPE"] = self.options.with_freetype
+        tc.cache_variables["USE_LIBWEBP"] = self.options.with_libwebp
+        tc.cache_variables["USE_OPENJPEG"] = self.options.with_openjpeg
 
         if self.options.with_openvdb:
-            tc.variables["CMAKE_CXX_STANDARD"] = 14
+            tc.cache_variables["CMAKE_CXX_STANDARD"] = 14
 
         tc.generate()
-        tc = CMakeDeps(self)
-        tc.generate()
-
-    def _patch_sources(self):
-        apply_conandata_patches(self)
 
     def build(self):
-        self._patch_sources()
+        apply_conandata_patches(self)
 
         cmake = CMake(self)
-        cmake.configure(build_script_folder=self.source_path.parent)
+        cmake.configure()
         cmake.build()
 
     def package(self):
