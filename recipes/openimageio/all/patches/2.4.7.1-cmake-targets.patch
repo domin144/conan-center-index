@@ -386,18 +386,3 @@ index 09b9139d0..a2d39982e 100644
              $<TARGET_NAME_IF_EXISTS:TBB::tbb>
              ${CMAKE_DL_LIBS}
          )
-diff --git a/src/ptex.imageio/CMakeLists.txt b/src/ptex.imageio/CMakeLists.txt
-index d7f0a9582..7cfce4a35 100644
---- a/src/ptex.imageio/CMakeLists.txt
-+++ b/src/ptex.imageio/CMakeLists.txt
-@@ -2,8 +2,8 @@
- # SPDX-License-Identifier: BSD-3-Clause
- # https://github.com/OpenImageIO/oiio
-
--if (Ptex_FOUND)
-+if (ptex_FOUND)
-     add_oiio_plugin (ptexinput.cpp
--                     LINK_LIBRARIES Ptex::Ptex_dynamic ZLIB::ZLIB
-+                     LINK_LIBRARIES Ptex::Ptex ZLIB::ZLIB
-                      DEFINITIONS "-DUSE_PTEX")
- endif ()
