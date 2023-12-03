@@ -125,6 +125,7 @@ class OpenImageIOConan(ConanFile):
             self.requires("libwebp/1.3.2")
         # TODO: R3DSDK dependency
         # TODO: Nuke dependency
+        self.requires("xz_utils/5.4.5", override=True)
 
     def validate(self):
         if self.settings.compiler.cppstd:
