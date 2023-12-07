@@ -38,3 +38,7 @@ patches:
     - patch_file: "patches/2.4.17.0-cmake-targets.patch"
       patch_description: "Ensure project builds correctly with Conan (don't pick up disabled dependencies from the system, fix different spelling of libraries)"
       patch_type: "conan"
+  "2.5.6.0":
+    - patch_file: "patches/2.5.6.0-0001-Remove-Findfmt.cmake.patch"
+      patch_description: "Fix handling of fmt dependecy."
+      patch_type: "conan"

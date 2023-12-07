@@ -155,6 +155,7 @@ class OpenImageIOConan(ConanFile):
         tc.variables["EMBEDPLUGINS"] = True
         tc.variables["USE_PYTHON"] = False
         tc.variables["USE_EXTERNAL_PUGIXML"] = True
+        tc.variables["INTERNALIZE_FMT"] = False
 
         # OIIO CMake files are patched to check USE_* flags to require or not use dependencies
         tc.variables["USE_JPEGTURBO"] = (
