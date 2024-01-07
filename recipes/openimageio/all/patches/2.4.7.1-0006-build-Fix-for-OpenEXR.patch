@@ -1,0 +1,25 @@
+From a30e7c0649662e31edc916f425e47016a24cc58f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dominik=20W=C3=B3jt?= <domin144@o2.pl>
+Date: Sun, 7 Jan 2024 18:04:31 +0100
+Subject: build: Fix for OpenEXR
+
+---
+ src/cmake/externalpackages.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/cmake/externalpackages.cmake b/src/cmake/externalpackages.cmake
+index 94b48523c..a2e7a96d2 100644
+--- a/src/cmake/externalpackages.cmake
++++ b/src/cmake/externalpackages.cmake
+@@ -106,7 +106,7 @@ include_directories(BEFORE ${IMATH_INCLUDES} ${OPENEXR_INCLUDES})
+ if (MSVC AND NOT LINKSTATIC)
+     add_definitions (-DOPENEXR_DLL) # Is this needed for new versions?
+ endif ()
+-if (OPENEXR_VERSION VERSION_GREATER_EQUAL 3.0)
++if (OpenEXR_VERSION VERSION_GREATER_EQUAL 3.0)
+     set (OIIO_USING_IMATH 3)
+ else ()
+     set (OIIO_USING_IMATH 2)
+-- 
+2.39.2
+

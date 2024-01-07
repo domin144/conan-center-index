@@ -1,0 +1,25 @@
+From af00ac6b4d1fe400fc288574ef0a8ffe98c350d5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dominik=20W=C3=B3jt?= <domin144@o2.pl>
+Date: Mon, 4 Dec 2023 21:47:38 +0100
+Subject: correct Freetype target
+
+---
+ src/libOpenImageIO/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libOpenImageIO/CMakeLists.txt b/src/libOpenImageIO/CMakeLists.txt
+index cb11b625c..862d68d15 100644
+--- a/src/libOpenImageIO/CMakeLists.txt
++++ b/src/libOpenImageIO/CMakeLists.txt
+@@ -146,7 +146,7 @@ target_link_libraries (OpenImageIO
+         )
+ 
+ if (FREETYPE_FOUND)
+-    target_link_libraries (OpenImageIO PRIVATE ${FREETYPE_LIBRARIES})
++    target_link_libraries (OpenImageIO PRIVATE Freetype::Freetype)
+ endif()
+ 
+ if (WIN32)
+-- 
+2.39.2
+
