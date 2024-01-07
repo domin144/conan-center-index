@@ -1,0 +1,37 @@
+From 91283e4742edb9132ae427900975b5135fea5eb1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dominik=20W=C3=B3jt?= <domin144@o2.pl>
+Date: Sun, 10 Dec 2023 00:48:31 +0100
+Subject: build: ptex support for static library (#4072)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+In some environments, only one kind of the library could be available.
+Choose proper fallback in such cases. Prefer static library, if
+LINKSTATIC is ON and dynamic otherwise.
+
+Signed-off-by: Dominik Wójt <domin144@o2.pl>
+---
+ src/ptex.imageio/CMakeLists.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/ptex.imageio/CMakeLists.txt b/src/ptex.imageio/CMakeLists.txt
+index ed42f1c94..16634fedb 100644
+--- a/src/ptex.imageio/CMakeLists.txt
++++ b/src/ptex.imageio/CMakeLists.txt
+@@ -3,7 +3,11 @@
+ # https://github.com/AcademySoftwareFoundation/OpenImageIO
+ 
+ if (Ptex_FOUND)
++    set(ptex_target Ptex::Ptex_dynamic)
++    if (TARGET Ptex::Ptex_static AND (NOT TARGET Ptex::Ptex_dynamic OR LINKSTATIC))
++        set(ptex_target Ptex::Ptex_static)
++    endif()
+     add_oiio_plugin (ptexinput.cpp
+-                     LINK_LIBRARIES Ptex::Ptex_dynamic ZLIB::ZLIB
++                     LINK_LIBRARIES ${ptex_target} ZLIB::ZLIB
+                      DEFINITIONS "-DUSE_PTEX")
+ endif ()
+-- 
+2.39.2
+
