@@ -1,3 +1,30 @@
+From 4a14779c69e29c9f0ccb7d1ceee316ceb948e4c1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dominik=20W=C3=B3jt?= <domin144@o2.pl>
+Date: Fri, 5 Jan 2024 19:47:38 +0100
+Subject: build: Remove Findfmt.cmake (#4069)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+fmt provides cmake config files since at least version 7.0.0, which is
+the minimum version supported.
+Fixed some variable names, so the provided config can be used.
+The previous variable names were missing, if the library was installed
+in a custom location,
+like in case of manual build or provided by conan.
+
+---------
+
+Signed-off-by: Dominik Wójt <domin144@o2.pl>
+---
+ src/cmake/externalpackages.cmake  | 15 ++++++++++----
+ src/cmake/modules/Findfmt.cmake   | 32 ------------------------------
+ src/include/CMakeLists.txt        | 33 ++++++++++++++++++++-----------
+ src/libOpenImageIO/CMakeLists.txt |  2 --
+ src/libutil/CMakeLists.txt        |  8 ++++----
+ 5 files changed, 37 insertions(+), 53 deletions(-)
+ delete mode 100644 src/cmake/modules/Findfmt.cmake
+
 diff --git a/src/cmake/externalpackages.cmake b/src/cmake/externalpackages.cmake
 index 3cfaedd57..467444491 100644
 --- a/src/cmake/externalpackages.cmake
@@ -76,47 +103,6 @@ index 9ee436da3..000000000
 -endif ()
 -
 -mark_as_advanced (FMT_INCLUDE_DIR)
-diff --git a/src/ffmpeg.imageio/CMakeLists.txt b/src/ffmpeg.imageio/CMakeLists.txt
-index 8e47a8443..e1a1987fe 100644
---- a/src/ffmpeg.imageio/CMakeLists.txt
-+++ b/src/ffmpeg.imageio/CMakeLists.txt
-@@ -2,7 +2,7 @@
- # SPDX-License-Identifier: Apache-2.0
- # https://github.com/AcademySoftwareFoundation/OpenImageIO
- 
--if (FFmpeg_FOUND)
-+if (ffmpeg_FOUND)
-     if (LINKSTATIC)
-         set (_static_suffixes .lib .a)
-         set (_static_libraries_found 0)
-@@ -26,11 +26,9 @@ if (FFmpeg_FOUND)
-     endif()
- 
-     add_oiio_plugin (ffmpeginput.cpp
--                     INCLUDE_DIRS ${FFMPEG_INCLUDES}
--                     LINK_LIBRARIES ${FFMPEG_LIBRARIES}
--                                    ${BZIP2_LIBRARIES}
-+                     LINK_LIBRARIES ffmpeg::avcodec ffmpeg::avformat ffmpeg::swscale
-                      DEFINITIONS "-DUSE_FFMPEG"
--                                 "-DOIIO_FFMPEG_VERSION=\"${FFMPEG_VERSION}\"")
-+                                 "-DOIIO_FFMPEG_VERSION=\"${ffmpeg_VERSION}\"")
- else()
-     message (STATUS "FFmpeg not found: ffmpeg plugin will not be built")
- endif()
-diff --git a/src/heif.imageio/CMakeLists.txt b/src/heif.imageio/CMakeLists.txt
-index 5b6c30a85..7b511e0e5 100644
---- a/src/heif.imageio/CMakeLists.txt
-+++ b/src/heif.imageio/CMakeLists.txt
-@@ -26,8 +26,7 @@ if (Libheif_FOUND)
-     endif()
- 
-     add_oiio_plugin (heifinput.cpp heifoutput.cpp
--                     INCLUDE_DIRS ${LIBHEIF_INCLUDES}
--                     LINK_LIBRARIES ${LIBHEIF_LIBRARIES}
-+                     LINK_LIBRARIES heif
-                      DEFINITIONS "-DUSE_HEIF=1")
- else ()
-     message (WARNING "heif plugin will not be built")
 diff --git a/src/include/CMakeLists.txt b/src/include/CMakeLists.txt
 index 006cb65a7..98ba2dc24 100644
 --- a/src/include/CMakeLists.txt
@@ -170,32 +156,18 @@ index 006cb65a7..98ba2dc24 100644
          file (WRITE "${CMAKE_BINARY_DIR}/include/OpenImageIO/detail/fmt/std.h"
                      "#include <fmt/std.h>")
 diff --git a/src/libOpenImageIO/CMakeLists.txt b/src/libOpenImageIO/CMakeLists.txt
-index 9972a7150..252681126 100644
+index 9972a7150..e16383eb0 100644
 --- a/src/libOpenImageIO/CMakeLists.txt
 +++ b/src/libOpenImageIO/CMakeLists.txt
-@@ -158,7 +158,7 @@ target_link_libraries (OpenImageIO
-         )
- 
- if (FREETYPE_FOUND)
--    target_link_libraries (OpenImageIO PRIVATE ${FREETYPE_LIBRARIES})
-+    target_link_libraries (OpenImageIO PRIVATE Freetype::Freetype)
- endif()
- 
- if (WIN32)
-@@ -169,7 +169,12 @@ if (MINGW)
+@@ -169,8 +169,6 @@ if (MINGW)
      target_link_libraries (OpenImageIO PRIVATE ws2_32)
  endif()
  
 -
-+if (INTERNALIZE_FMT OR OIIO_USING_FMT_LOCAL)
-+    add_dependencies(OpenImageIO_Util fmt_internal_target)
-+else ()
-+    target_link_libraries (OpenImageIO_Util
-+                           PUBLIC fmt::fmt-header-only)
-+endif ()
- 
+-
  file (GLOB iba_sources "imagebufalgo_*.cpp")
  if (MSVC)
+     # In some MSVC setups, the IBA functions with huge template expansions
 diff --git a/src/libutil/CMakeLists.txt b/src/libutil/CMakeLists.txt
 index 10cc4b0c4..f873b3eed 100644
 --- a/src/libutil/CMakeLists.txt
@@ -216,3 +188,6 @@ index 10cc4b0c4..f873b3eed 100644
  endif ()
  
  if (WIN32)
+-- 
+2.39.2
+

@@ -1,0 +1,26 @@
+From 18f50e44d86866368401d03684a538195eae15b6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dominik=20W=C3=B3jt?= <domin144@o2.pl>
+Date: Mon, 4 Dec 2023 22:00:16 +0100
+Subject: fix target for heif
+
+---
+ src/heif.imageio/CMakeLists.txt | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/heif.imageio/CMakeLists.txt b/src/heif.imageio/CMakeLists.txt
+index 5b6c30a85..7b511e0e5 100644
+--- a/src/heif.imageio/CMakeLists.txt
++++ b/src/heif.imageio/CMakeLists.txt
+@@ -26,8 +26,7 @@ if (Libheif_FOUND)
+     endif()
+ 
+     add_oiio_plugin (heifinput.cpp heifoutput.cpp
+-                     INCLUDE_DIRS ${LIBHEIF_INCLUDES}
+-                     LINK_LIBRARIES ${LIBHEIF_LIBRARIES}
++                     LINK_LIBRARIES heif
+                      DEFINITIONS "-DUSE_HEIF=1")
+ else ()
+     message (WARNING "heif plugin will not be built")
+-- 
+2.39.2
+

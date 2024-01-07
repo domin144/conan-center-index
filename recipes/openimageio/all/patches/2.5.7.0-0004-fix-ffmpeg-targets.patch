@@ -1,0 +1,39 @@
+From 18d5bd25f679721cf44cc11e6389e152c7a08a34 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Dominik=20W=C3=B3jt?= <domin144@o2.pl>
+Date: Wed, 6 Dec 2023 17:23:07 +0100
+Subject: fix ffmpeg targets
+
+---
+ src/ffmpeg.imageio/CMakeLists.txt | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/ffmpeg.imageio/CMakeLists.txt b/src/ffmpeg.imageio/CMakeLists.txt
+index 8e47a8443..e1a1987fe 100644
+--- a/src/ffmpeg.imageio/CMakeLists.txt
++++ b/src/ffmpeg.imageio/CMakeLists.txt
+@@ -2,7 +2,7 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # https://github.com/AcademySoftwareFoundation/OpenImageIO
+ 
+-if (FFmpeg_FOUND)
++if (ffmpeg_FOUND)
+     if (LINKSTATIC)
+         set (_static_suffixes .lib .a)
+         set (_static_libraries_found 0)
+@@ -26,11 +26,9 @@ if (FFmpeg_FOUND)
+     endif()
+ 
+     add_oiio_plugin (ffmpeginput.cpp
+-                     INCLUDE_DIRS ${FFMPEG_INCLUDES}
+-                     LINK_LIBRARIES ${FFMPEG_LIBRARIES}
+-                                    ${BZIP2_LIBRARIES}
++                     LINK_LIBRARIES ffmpeg::avcodec ffmpeg::avformat ffmpeg::swscale
+                      DEFINITIONS "-DUSE_FFMPEG"
+-                                 "-DOIIO_FFMPEG_VERSION=\"${FFMPEG_VERSION}\"")
++                                 "-DOIIO_FFMPEG_VERSION=\"${ffmpeg_VERSION}\"")
+ else()
+     message (STATUS "FFmpeg not found: ffmpeg plugin will not be built")
+ endif()
+-- 
+2.39.2
+
