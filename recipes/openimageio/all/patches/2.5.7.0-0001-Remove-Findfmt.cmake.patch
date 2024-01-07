@@ -1,5 +1,5 @@
 diff --git a/src/cmake/externalpackages.cmake b/src/cmake/externalpackages.cmake
-index 3cfaedd57..3c8dea570 100644
+index 3cfaedd57..467444491 100644
 --- a/src/cmake/externalpackages.cmake
 +++ b/src/cmake/externalpackages.cmake
 @@ -332,7 +332,7 @@ macro (find_or_download_fmt)
@@ -11,14 +11,18 @@ index 3cfaedd57..3c8dea570 100644
          message (STATUS "Downloading local fmtlib/fmt")
          set (FMT_INSTALL_DIR "${PROJECT_SOURCE_DIR}/ext/fmt")
          set (FMT_GIT_REPOSITORY "https://github.com/fmtlib/fmt")
-@@ -350,16 +350,19 @@ macro (find_or_download_fmt)
+@@ -350,16 +350,23 @@ macro (find_or_download_fmt)
          endif ()
          set (FMT_INCLUDE_DIR "${FMT_INSTALL_DIR}/include")
          set (OIIO_USING_FMT_LOCAL TRUE)
-+        set (fmt_VERSION ${BUILD_FMT_VERSION})
-+        add_library(fmt::fmt IMPORTED)
++        file (STRINGS "${FMT_INCLUDE_DIR}/fmt/core.h" TMP REGEX "^#define FMT_VERSION .*$")
++        string (REGEX MATCHALL "[0-9]+" FMT_VERSION_NUMERIC ${TMP})
++        math(EXPR FMT_VERSION_PATCH "${FMT_VERSION_NUMERIC} % 100")
++        math(EXPR FMT_VERSION_MINOR "(${FMT_VERSION_NUMERIC} / 100) % 100")
++        math(EXPR FMT_VERSION_MAJOR "${FMT_VERSION_NUMERIC} / 10000")
++        set (fmt_VERSION "${FMT_VERSION_MAJOR}.${FMT_VERSION_MINOR}.${FMT_VERSION_PATCH}")
      else ()
-+        get_target_property(FMT_INCLUDE_DIR fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
++        get_target_property(FMT_INCLUDE_DIR fmt::fmt-header-only INTERFACE_INCLUDE_DIRECTORIES)
          set (OIIO_USING_FMT_LOCAL FALSE)
 +        checked_find_package (fmt REQUIRED
 +                              VERSION_MIN 7.0)
@@ -114,10 +118,10 @@ index 5b6c30a85..7b511e0e5 100644
  else ()
      message (WARNING "heif plugin will not be built")
 diff --git a/src/include/CMakeLists.txt b/src/include/CMakeLists.txt
-index 006cb65a7..1f7888c28 100644
+index 006cb65a7..98ba2dc24 100644
 --- a/src/include/CMakeLists.txt
 +++ b/src/include/CMakeLists.txt
-@@ -65,17 +65,29 @@ install (FILES ${detail_headers}
+@@ -65,17 +65,28 @@ install (FILES ${detail_headers}
           COMPONENT developer)
  
  if (INTERNALIZE_FMT OR OIIO_USING_FMT_LOCAL)
@@ -152,12 +156,11 @@ index 006cb65a7..1f7888c28 100644
 +                            ${CMAKE_COMMAND} -E copy
 +                            ${fmt_headers}
 +                            ${fmt_internal_directory})
-+    add_custom_target (fmt_internal DEPENDS ${fmt_headers_internal})
-+    add_dependencies (fmt::fmt fmt_internal)
++    add_custom_target (fmt_internal_target DEPENDS ${fmt_headers_internal})
  else ()
      set (fmt_headers
           ${CMAKE_BINARY_DIR}/include/OpenImageIO/detail/fmt/format.h
-@@ -85,7 +97,7 @@ else ()
+@@ -85,7 +96,7 @@ else ()
          file (WRITE "${CMAKE_BINARY_DIR}/include/OpenImageIO/detail/fmt/${f}"
                      "#include <fmt/${f}>")
      endforeach ()
@@ -167,14 +170,10 @@ index 006cb65a7..1f7888c28 100644
          file (WRITE "${CMAKE_BINARY_DIR}/include/OpenImageIO/detail/fmt/std.h"
                      "#include <fmt/std.h>")
 diff --git a/src/libOpenImageIO/CMakeLists.txt b/src/libOpenImageIO/CMakeLists.txt
-index 9972a7150..8f9f24295 100644
+index 9972a7150..252681126 100644
 --- a/src/libOpenImageIO/CMakeLists.txt
 +++ b/src/libOpenImageIO/CMakeLists.txt
-@@ -155,10 +155,11 @@ target_link_libraries (OpenImageIO
-             ZLIB::ZLIB
-             $<TARGET_NAME_IF_EXISTS:Boost::thread>
-             ${CMAKE_DL_LIBS}
-+            fmt::fmt
+@@ -158,7 +158,7 @@ target_link_libraries (OpenImageIO
          )
  
  if (FREETYPE_FOUND)
@@ -183,16 +182,37 @@ index 9972a7150..8f9f24295 100644
  endif()
  
  if (WIN32)
-diff --git a/src/ptex.imageio/CMakeLists.txt b/src/ptex.imageio/CMakeLists.txt
-index ed42f1c94..235985713 100644
---- a/src/ptex.imageio/CMakeLists.txt
-+++ b/src/ptex.imageio/CMakeLists.txt
-@@ -4,6 +4,7 @@
+@@ -169,7 +169,12 @@ if (MINGW)
+     target_link_libraries (OpenImageIO PRIVATE ws2_32)
+ endif()
  
- if (Ptex_FOUND)
-     add_oiio_plugin (ptexinput.cpp
--                     LINK_LIBRARIES Ptex::Ptex_dynamic ZLIB::ZLIB
-+                     LINK_LIBRARIES ${ptex_LIBRARIES} ZLIB::ZLIB
-+                     INCLUDE_DIRS ${ptex_INCLUDE_DIRS}
-                      DEFINITIONS "-DUSE_PTEX")
+-
++if (INTERNALIZE_FMT OR OIIO_USING_FMT_LOCAL)
++    add_dependencies(OpenImageIO_Util fmt_internal_target)
++else ()
++    target_link_libraries (OpenImageIO_Util
++                           PUBLIC fmt::fmt-header-only)
++endif ()
+ 
+ file (GLOB iba_sources "imagebufalgo_*.cpp")
+ if (MSVC)
+diff --git a/src/libutil/CMakeLists.txt b/src/libutil/CMakeLists.txt
+index 10cc4b0c4..f873b3eed 100644
+--- a/src/libutil/CMakeLists.txt
++++ b/src/libutil/CMakeLists.txt
+@@ -27,11 +27,11 @@ target_link_libraries (OpenImageIO_Util
+             ${CMAKE_DL_LIBS}
+         )
+ 
+-if (NOT OIIO_USING_FMT_LOCAL)
+-    target_include_directories (OpenImageIO_Util
+-                                PUBLIC ${FMT_INCLUDES} )
++if (INTERNALIZE_FMT OR OIIO_USING_FMT_LOCAL)
++    add_dependencies(OpenImageIO_Util fmt_internal_target)
++else ()
+     target_link_libraries (OpenImageIO_Util
+-                           PUBLIC $<TARGET_NAME_IF_EXISTS:fmt::fmt> )
++                           PUBLIC fmt::fmt-header-only)
  endif ()
+ 
+ if (WIN32)

@@ -63,6 +63,7 @@ class OpenImageIOConan(ConanFile):
         "with_openvdb": False,  # FIXME: broken on M1
         "with_ptex": True,
         "with_libwebp": True,
+        "fmt/*:header_only": True,
     }
 
     def export_sources(self):
@@ -89,7 +90,7 @@ class OpenImageIOConan(ConanFile):
         self.requires("pugixml/1.13")
         self.requires("libsquish/1.15")
         self.requires("tsl-robin-map/1.2.1")
-        self.requires("fmt/10.1.1")
+        self.requires("fmt/10.1.1", transitive_headers=True)
 
         # Optional libraries
         if self.options.with_libpng:
