@@ -92,8 +92,10 @@ class OpenImageIOConan(ConanFile):
         self.requires("tsl-robin-map/1.2.1")
         if Version(self.version) >= "2.4.17.0":
             self.requires("fmt/10.2.1", transitive_headers=True)
-        else:
+        elif Version(self.version) >= "2.4.7.1":
             self.requires("fmt/9.1.0", transitive_headers=True)
+        else:
+            self.requires("fmt/8.1.1", transitive_headers=True)
 
         # Optional libraries
         if self.options.with_libpng:
